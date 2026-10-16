@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Telegram Control</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+:root{
+  --th1:#fbbf24;--th2:#d97706;--th3:#b45309;--th4:#7c2d12;--thGlow:rgba(245,158,11,.5);
+  --thBg1:#fff9ec;--thBg2:#fef3c7;--thBg3:#fed7aa;
+  --ink:#0a2e1c;--muted:#5c7a68;
+  --green:#22c55e;--greenDeep:#0a6b2f;
+  --blue:#3b82f6;--blueDeep:#1e3a8a;
+  --red:#ef4444;--redDeep:#7f1d1d;
+  --purple:#8b5cf6;--purpleDeep:#4c1d95;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+body{margin:0;font-family:'Fredoka',sans-serif;background:linear-gradient(135deg,var(--thBg1),var(--thBg3));color:var(--ink);min-height:100vh;padding-bottom:30px;}
+
+.header{position:sticky;top:0;z-index:100;background:linear-gradient(180deg,var(--th2),var(--th3));padding:14px 16px;color:#fff;box-shadow:0 6px 0 var(--th4);border-radius:0 0 24px 24px;}
+.header h1{margin:0;font-size:20px;font-weight:800;text-align:center;}
+.header p{margin:4px 0 0;font-size:11.5px;opacity:.9;font-weight:600;text-align:center;}
+
+.mobile-bar{background:#fff;border:3px solid var(--th1);border-radius:18px;padding:12px 14px;margin:14px;box-shadow:0 6px 0 var(--th1),0 0 24px var(--thGlow);display:flex;align-items:center;gap:10px;}
+.mobile-bar i.main-icon{color:var(--th3);font-size:22px;flex:0 0 auto;}
+.mobile-bar input{flex:1;border:0;outline:0;font-family:'Fredoka',sans-serif;font-size:17px;font-weight:800;color:var(--th4);background:transparent;letter-spacing:1px;min-width:0;}
+.mobile-bar input::placeholder{color:#c9a878;font-weight:600;font-size:15px;}
+.mobile-bar .save-ic{color:var(--green);font-size:20px;flex:0 0 auto;cursor:pointer;}
+.mobile-bar .save-ic.saved{color:var(--th3);}
+.mobile-note{font-size:11px;color:var(--muted);text-align:center;margin:-8px 14px 12px;font-weight:600;}
+
+.container{max-width:640px;margin:0 auto;padding:0 14px;}
+
+.search-wrap{margin-bottom:14px;position:relative;}
+.search-wrap i{position:absolute;left:15px;top:50%;transform:translateY(-50%);color:var(--th3);font-size:15px;}
+.search-wrap input{width:100%;height:50px;border:2.5px solid var(--th1);border-radius:16px;padding:0 15px 0 42px;font-family:'Fredoka',sans-serif;font-size:14px;font-weight:600;background:#fff;color:var(--ink);outline:none;box-shadow:0 4px 0 var(--th1);}
+
+.top-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
+.top-btn{border:0;border-radius:16px;padding:14px 8px;font-family:'Fredoka',sans-serif;font-weight:800;font-size:12.5px;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 0 rgba(0,0,0,.25);transition:.08s;}
+.top-btn:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(0,0,0,.25);}
+.top-btn.telegram{background:linear-gradient(180deg,#2aabee,#1e88c7);box-shadow:0 4px 0 #0e5a8a;}
+.top-btn.clear{background:linear-gradient(180deg,#475569,#1e293b);box-shadow:0 4px 0 #0f172a;}
+
+.group-title{font-size:14px;font-weight:800;color:var(--th4);margin:18px 4px 10px;display:flex;align-items:center;gap:8px;}
+.group-title i{width:28px;height:28px;border-radius:9px;background:linear-gradient(160deg,var(--th1),var(--th3));display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;box-shadow:0 3px 0 var(--th4);}
+.group-title .count{margin-left:auto;background:var(--thBg2);color:var(--th4);font-size:10.5px;padding:3px 9px;border-radius:10px;font-weight:800;}
+.group-title .tier{margin-left:6px;background:var(--th4);color:#fff;font-size:9.5px;padding:3px 7px;border-radius:8px;font-weight:800;letter-spacing:.5px;}
+
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+
+.btn{border:0;border-radius:15px;padding:12px 6px;font-family:'Fredoka',sans-serif;font-weight:700;font-size:12.5px;color:#fff;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;box-shadow:0 4px 0 rgba(0,0,0,.22);transition:.08s;text-align:center;line-height:1.2;min-height:66px;position:relative;overflow:hidden;}
+.btn i{font-size:18px;}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(0,0,0,.22);}
+.btn.full{grid-column:1/-1;}
+.btn.green{background:linear-gradient(180deg,#4ade80,#16a34a);box-shadow:0 4px 0 var(--greenDeep);}
+.btn.red{background:linear-gradient(180deg,#f87171,#dc2626);box-shadow:0 4px 0 var(--redDeep);}
+.btn.blue{background:linear-gradient(180deg,#60a5fa,#1d4ed8);box-shadow:0 4px 0 var(--blueDeep);}
+.btn.amber{background:linear-gradient(180deg,#fbbf24,#b45309);box-shadow:0 4px 0 var(--th4);}
+.btn.purple{background:linear-gradient(180deg,#a78bfa,#7c3aed);box-shadow:0 4px 0 var(--purpleDeep);}
+.btn.dark{background:linear-gradient(180deg,#334155,#0f172a);box-shadow:0 4px 0 #000;}
+.btn.wa{background:linear-gradient(180deg,#25d366,#128c7e);box-shadow:0 4px 0 #075e54;}
+.btn.pink{background:linear-gradient(180deg,#f472b6,#db2777);box-shadow:0 4px 0 #831843;}
+.btn.teal{background:linear-gradient(180deg,#2dd4bf,#0d9488);box-shadow:0 4px 0 #134e4a;}
+.btn.indigo{background:linear-gradient(180deg,#818cf8,#4338ca);box-shadow:0 4px 0 #1e1b4b;}
+.btn.rose{background:linear-gradient(180deg,#fb7185,#e11d48);box-shadow:0 4px 0 #881337;}
+.btn.lime{background:linear-gradient(180deg,#a3e635,#65a30d);box-shadow:0 4px 0 #365314;}
+
+.theme-strip{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+.theme-btn{height:70px;border:0;border-radius:14px;font-family:'Fredoka',sans-serif;font-weight:800;font-size:11px;color:#fff;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;box-shadow:0 4px 0 rgba(0,0,0,.25);transition:.08s;letter-spacing:.3px;}
+.theme-btn i{font-size:18px;}
+.theme-btn:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(0,0,0,.25);}
+
+.toast{position:fixed;bottom:24px;left:50%;transform:translate(-50%,140%);background:linear-gradient(180deg,#22c55e,#16a34a);color:#fff;font-weight:700;font-size:13.5px;padding:14px 22px;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.3);z-index:300;display:flex;align-items:center;gap:10px;transition:.35s;max-width:calc(100% - 40px);text-align:center;}
+.toast.show{transform:translate(-50%,0);}
+.toast.error{background:linear-gradient(180deg,#f87171,#dc2626);}
+.toast.tg{background:linear-gradient(180deg,#2aabee,#1e88c7);}
+.toast.copy{background:linear-gradient(180deg,#fbbf24,#b45309);}
+
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(4px);z-index:400;display:none;align-items:center;justify-content:center;padding:18px;}
+.modal.show{display:flex;}
+.modal-box{background:#fff;border-radius:22px;padding:20px 18px;max-width:400px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.4);max-height:92vh;overflow-y:auto;}
+.modal-title{font-size:17px;font-weight:800;color:var(--th4);margin:0 0 6px;text-align:center;display:flex;align-items:center;justify-content:center;gap:8px;}
+.modal-title i{color:var(--th2);}
+.modal-hint{font-size:11.5px;color:var(--muted);text-align:center;margin:0 0 14px;font-weight:600;line-height:1.5;}
+.modal-label{font-size:11.5px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin:0 0 5px 4px;display:block;}
+.modal-input{width:100%;height:46px;border:2.5px solid var(--th1);border-radius:13px;padding:0 13px;font-family:'Fredoka',sans-serif;font-size:14.5px;font-weight:600;background:#fffdf5;color:var(--ink);outline:none;margin-bottom:11px;}
+.modal-input:focus{border-color:var(--th2);box-shadow:0 0 0 3px var(--thGlow);}
+.modal-actions{display:grid;grid-template-columns:1fr 1.3fr;gap:9px;margin-top:10px;}
+.modal-btn{height:50px;border:0;border-radius:14px;font-family:'Fredoka',sans-serif;font-weight:800;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;padding:0 6px;}
+.modal-btn.cancel{background:#f1f5f9;color:#475569;}
+.modal-btn.tg{background:linear-gradient(180deg,#2aabee,#1e88c7);color:#fff;box-shadow:0 5px 0 #0e5a8a;font-size:13.5px;}
+.modal-btn:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(0,0,0,.3);}
+
+.cmd-preview{background:#f8fafc;border:2px dashed #cbd5e1;border-radius:12px;padding:11px 13px;font-family:'Courier New',monospace;font-size:12.5px;color:#334155;word-break:break-all;margin-bottom:11px;font-weight:700;line-height:1.5;}
+.logo-preview{width:56px;height:56px;border-radius:13px;border:2px dashed var(--th1);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;overflow:hidden;background:#fffdf5;}
+.logo-preview img{width:100%;height:100%;object-fit:cover;}
+.logo-preview i{font-size:22px;color:var(--th3);}
+
+.fab{position:fixed;bottom:20px;right:20px;width:56px;height:56px;border-radius:50%;background:linear-gradient(180deg,#2aabee,#1e88c7);color:#fff;border:0;font-size:22px;cursor:pointer;box-shadow:0 8px 24px rgba(42,171,238,.4);z-index:200;display:flex;align-items:center;justify-content:center;}
+.fab:active{transform:scale(.95);}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🎯 Telegram Control</h1>
+  <p id="headerSub">220+ Commands · Search · Copy · Auto TG</p>
+</div>
+
+<div class="mobile-bar">
+  <i class="fa-solid fa-mobile-screen-button main-icon"></i>
+  <input type="tel" id="globalMobile" maxlength="10" inputmode="numeric" placeholder="Enter mobile number (10 digit)">
+  <i class="fa-solid fa-circle-check save-ic" id="saveIcon" onclick="saveGlobalMobile()"></i>
+</div>
+<div class="mobile-note">👆 Ye number sab commands mein auto-fill hoga (jahan zaroori ho)</div>
+
+<div class="container">
+
+<div class="search-wrap">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="text" id="searchBox" placeholder="Search 220+ commands... (e.g. add, prize, vip, kyc)">
+</div>
+
+<div class="top-actions">
+  <button class="top-btn telegram" onclick="openTelegram()"><i class="fa-brands fa-telegram"></i> OPEN TELEGRAM</button>
+  <button class="top-btn clear" onclick="clearAll()"><i class="fa-solid fa-eraser"></i> CLEAR ALL</button>
+</div>
+
+<!-- ==================== TIER 1 ==================== -->
+
+<div class="group-title" data-group="approve"><i class="fa-solid fa-user-check"></i> Approve / Reject <span class="tier">T1</span> <span class="count">8</span></div>
+<div class="grid">
+  <button class="btn green" onclick="ask('ok','Approve user')"><i class="fa-solid fa-check"></i> ✅ APPROVE</button>
+  <button class="btn red" onclick="ask('reject','Reject user')"><i class="fa-solid fa-xmark"></i> ❌ REJECT</button>
+  <button class="btn red" onclick="ask('block','Block user')"><i class="fa-solid fa-ban"></i> 🚫 BLOCK</button>
+  <button class="btn green" onclick="ask('unblock','Unblock user')"><i class="fa-solid fa-unlock"></i> 🔓 UNBLOCK</button>
+  <button class="btn blue" onclick="ask('resetpass','Reset password')"><i class="fa-solid fa-key"></i> 🔑 RESET PASS</button>
+  <button class="btn red" onclick="ask('reset','Full reset DANGER')"><i class="fa-solid fa-trash"></i> 🗑️ WIPE</button>
+  <button class="btn amber" onclick="ask('approveall','Approve all')"><i class="fa-solid fa-check-double"></i> ✅ ALL APPROVE</button>
+  <button class="btn dark" onclick="ask('logoutuser','Force logout')"><i class="fa-solid fa-right-from-bracket"></i> 🚪 FORCE LOGOUT</button>
+</div>
+
+<div class="group-title" data-group="balance"><i class="fa-solid fa-indian-rupee-sign"></i> Balance <span class="tier">T1</span> <span class="count">8</span></div>
+<div class="grid">
+  <button class="btn green" onclick="ask2('add','Add Balance','Amount ₹')"><i class="fa-solid fa-plus"></i> ➕ ADD ₹</button>
+  <button class="btn red" onclick="ask2('minus','Minus','Amount ₹')"><i class="fa-solid fa-minus"></i> ➖ MINUS ₹</button>
+  <button class="btn blue" onclick="ask2('setbal','Set Balance','New ₹')"><i class="fa-solid fa-pen"></i> ✏️ SET ₹</button>
+  <button class="btn green" onclick="ask2('plus','Plus Bonus','Amount ₹')"><i class="fa-solid fa-gift"></i> 🎁 PLUS</button>
+  <button class="btn red" onclick="ask2('deduct','Deduct','Amount ₹')"><i class="fa-solid fa-scissors"></i> ✂️ DEDUCT</button>
+  <button class="btn purple" onclick="ask2('subtract','Subtract','Amount ₹')"><i class="fa-solid fa-eraser"></i> ➖ SUBTRACT</button>
+  <button class="btn amber" onclick="ask2('balance','Set Balance','New ₹')"><i class="fa-solid fa-scale-balanced"></i> ⚖️ BALANCE</button>
+  <button class="btn dark" onclick="ask('cleartxn','Clear history')"><i class="fa-solid fa-eraser"></i> 🧹 CLEAR HISTORY</button>
+</div>
+
+<div class="group-title" data-group="prize"><i class="fa-solid fa-star"></i> Prize + Payee <span class="tier">T1</span> <span class="count">5</span></div>
+<div class="grid">
+  <button class="btn amber full" onclick="askPrizeAndPayee()"><i class="fa-solid fa-bolt"></i> ⚡ PRIZE + PAYEE (Combo)</button>
+  <button class="btn purple" onclick="ask2('prize','Set Prize','Prize ₹')"><i class="fa-solid fa-trophy"></i> 🏆 PRIZE</button>
+  <button class="btn red" onclick="ask('prizeoff','Prize OFF')"><i class="fa-solid fa-power-off"></i> 🚫 PRIZEOFF</button>
+  <button class="btn blue" onclick="askPayee()"><i class="fa-solid fa-credit-card"></i> 🏦 PAYEE</button>
+  <button class="btn red" onclick="ask('payeeoff','Payee OFF')"><i class="fa-solid fa-power-off"></i> 🚫 PAYEEOFF</button>
+</div>
+
+<div class="group-title" data-group="payment"><i class="fa-solid fa-money-check"></i> Payment <span class="tier">T1</span> <span class="count">6</span></div>
+<div class="grid">
+  <button class="btn green" onclick="ask('payok','Approve payment')"><i class="fa-solid fa-circle-check"></i> 💰 PAY OK</button>
+  <button class="btn red" onclick="ask('payno','Reject payment')"><i class="fa-solid fa-circle-xmark"></i> ❌ PAY NO</button>
+  <button class="btn purple" onclick="ask('next','Unlock')"><i class="fa-solid fa-unlock"></i> 🔓 NEXT</button>
+  <button class="btn blue" onclick="ask('unlock','Unlock')"><i class="fa-solid fa-lock-open"></i> 🔐 UNLOCK</button>
+  <button class="btn teal" onclick="ask('payrefund','Refund')"><i class="fa-solid fa-rotate-left"></i> 🔄 REFUND</button>
+  <button class="btn dark" onclick="ask('payreset','Reset payment')"><i class="fa-solid fa-eraser"></i> 🧹 PAY RESET</button>
+</div>
+
+<div class="group-title" data-group="wallet"><i class="fa-solid fa-wallet"></i> Wallet + Logo <span class="tier">T1</span> <span class="count">7</span></div>
+<div class="grid">
+  <button class="btn green" onclick="ask2('walletok','Approve wallet','Wallet name')"><i class="fa-solid fa-check-double"></i> ✅ WALLET OK</button>
+  <button class="btn red" onclick="ask2('walletno','Reject wallet','Wallet name')"><i class="fa-solid fa-ban"></i> ❌ WALLET NO</button>
+  <button class="btn purple" onclick="askWalletLogo()"><i class="fa-solid fa-image"></i> 🖼️ ADD + LOGO</button>
+  <button class="btn blue" onclick="askUpdateLogo()"><i class="fa-solid fa-pen-to-square"></i> ✏️ UPDATE LOGO</button>
+  <button class="btn red" onclick="askDelWallet()"><i class="fa-solid fa-trash"></i> 🗑️ DELETE WALLET</button>
+  <button class="btn amber" onclick="ask('walletlist','List wallets')"><i class="fa-solid fa-list"></i> 📋 LIST</button>
+  <button class="btn dark full" onclick="ask('walletreset','Reset wallets')"><i class="fa-solid fa-rotate-left"></i> 🔄 RESET WALLETS</button>
+</div>
+
+<div class="group-title" data-group="invite"><i class="fa-solid fa-user-plus"></i> Invite & User <span class="tier">T1</span> <span class="count">5</span></div>
+<div class="grid">
+  <button class="btn green" onclick="ask('inviteok','Invite ₹10')"><i class="fa-solid fa-gift"></i> 🎁 INVITE ₹10</button>
+  <button class="btn red" onclick="ask('inviteno','Reject invite')"><i class="fa-solid fa-circle-xmark"></i> ❌ INVITE NO</button>
+  <button class="btn purple" onclick="ask2('setinvite','Set invite code','Code')"><i class="fa-solid fa-ticket"></i> 🎟️ SET CODE</button>
+  <button class="btn blue" onclick="ask2('setuser','Change username','New name')"><i class="fa-solid fa-user-pen"></i> 👤 USERNAME</button>
+  <button class="btn teal full" onclick="ask('invitelist','List invites')"><i class="fa-solid fa-list-check"></i> 📋 INVITES LIST</button>
+</div>
+
+<!-- ==================== TIER 2 ==================== -->
+
+<div class="group-title" data-group="theme"><i class="fa-solid fa-palette"></i> Festival Themes <span class="tier">T2</span> <span class="count">15</span></div>
+<div class="theme-strip">
+  <button class="theme-btn" style="background:linear-gradient(160deg,#fbbf24,#b45309)" onclick="quickCopy('theme diwali','Diwali')"><i class="fa-solid fa-fire"></i> DIWALI</button>
+  <button class="theme-btn" style="background:linear-gradient(160deg,#ef4444,#7f1d1d)" onclick="quickCopy('theme durga','Durga')"><i class="fa-solid fa-om"></i> DURGA</button>
+  <button class="theme-btn" style="background:linear-gradient(160deg,#ec4899,#831843)" onclick="quickCopy('theme holi','Holi')"><i class="fa-solid fa-palette"></i> HOLI</button>
+  <button class="theme-btn" style="background:linear-gradient(160deg,#22c55e,#14532d)" onclick="quickCopy('theme christmas','Christmas')"><i class="fa-solid fa-tree"></i> XMAS</button>
+  <button class="theme-btn" style="background:linear-gradient(160deg,#f97316,#7c2d12)" onclick="quickCopy('theme navratri','Navratri')"><i class="fa-solid fa-star"></i> NAVRATRI</button>
+  <button class="theme-btn" style="background:linear-gradient(160deg,#eab308,#713f12)" onclick="quickCopy('theme dussehra','Dussehra')"><i class="fa-solid fa-crosshairs"></i> DUSSEHRA</button>
+  <button class="theme-btn" style="background:linear-gradient(160deg,#06b6d4,#0e7490)" onclick="quickCopy('theme eid','Eid')"><i class="fa-solid fa-moon"></i> EID</button>
+  <button class="theme-btn" style="background:linear-gradient(160deg,#14b8a6,#134e4a)" onclick="quickCopy('theme raksha','Raksha')"><i class="fa-solid fa-hand-fist"></i> RAKSHA</button>
+  <button class="theme-btn" style="background:linear-gradient(160deg,#8b5cf6,#4c1d95)" onclick="quickCopy('theme janmashtami','Krishna')"><i class="fa-solid fa-dharmachakra"></i> KRISHNA</button>
+  <button class="theme-btn" style="background:linear-gradient(160deg,#f43f5e,#881337)" onclick="quickCopy('theme valentine','Valentine')"><i class="fa-solid fa-heart"></i> VALENTINE</button>
+  <button class="theme-btn" style="background:linear-gradient(160deg,#3b82f6,#1e3a8a)" onclick="quickCopy('theme independence','Independence')"><i class="fa-solid fa-flag"></i> INDEP</button>
+  <button class="theme-btn" style="background:linear-gradient(160deg,#10b981,#065f46)" onclick="quickCopy('theme newyear','New Year')"><i class="fa-solid fa-champagne-glasses"></i> NEW YEAR</button>
+  <button class="theme-btn" style="background:linear-gradient(160deg,#fb923c,#9a3412)" onclick="quickCopy('theme ganesh','Ganesh')"><i class="fa-solid fa-elephant"></i> GANESH</button>
+  <button class="theme-btn" style="background:linear-gradient(160deg,#a855f7,#581c87)" onclick="quickCopy('theme shivratri','Shivratri')"><i class="fa-solid fa-om"></i> SHIVRATRI</button>
+  <button class="theme-btn" style="background:linear-gradient(160deg,#f472b6,#9d174d)" onclick="quickCopy('theme karwa','Karwa Chauth')"><i class="fa-solid fa-moon"></i> KARWA</button>
+</div>
+<div style="margin-top:10px;">
+  <button class="btn pink full" onclick="askPure('__custom_theme__','🎨 Custom Theme',[{label:'Theme Name',val:'',type:'text'},{label:'Color 1 (#hex)',val:'#fbbf24',type:'text'},{label:'Color 2 (#hex)',val:'#d97706',type:'text'},{label:'Color 3 (#hex)',val:'#b45309',type:'text'}])"><i class="fa-solid fa-brush"></i> 🎨 CUSTOM THEME</button>
+</div>
+
+<div class="group-title" data-group="branding"><i class="fa-solid fa-tag"></i> Branding <span class="tier">T2</span> <span class="count">7</span></div>
+<div class="grid">
+  <button class="btn blue" onclick="askPure('__brand__','🏷️ Brand Name',[{label:'Brand Name',val:'',type:'text'}])"><i class="fa-solid fa-crown"></i> 🏷️ BRAND</button>
+  <button class="btn purple" onclick="askPure('__logo__','🖼️ App Logo',[{label:'Logo URL',val:'',type:'text'}])"><i class="fa-solid fa-image"></i> 🖼️ APP LOGO</button>
+  <button class="btn red" onclick="quickCopy('logooff','Logo OFF')"><i class="fa-solid fa-trash"></i> LOGO OFF</button>
+  <button class="btn amber" onclick="askPure('__title__','📝 Set Title',[{label:'Type (login/register)',val:'login',type:'text'},{label:'Title Text',val:'',type:'text'}])"><i class="fa-solid fa-heading"></i> TITLE</button>
+  <button class="btn blue" onclick="askPure('__subtitle__','📝 Set Subtitle',[{label:'Type (login/register)',val:'login',type:'text'},{label:'Subtitle Text',val:'',type:'text'}])"><i class="fa-solid fa-align-left"></i> SUBTITLE</button>
+  <button class="btn teal" onclick="askPure('__bannerimg__','🖼️ Banner Image',[{label:'Image URL',val:'',type:'text'}])"><i class="fa-solid fa-photo-film"></i> BANNER IMG</button>
+  <button class="btn pink full" onclick="askPure('__themecolor__','🎨 Custom Colors',[{label:'Color 1',val:'#fbbf24',type:'text'},{label:'Color 2',val:'#d97706',type:'text'},{label:'Color 3',val:'#b45309',type:'text'}])"><i class="fa-solid fa-palette"></i> 🎨 CUSTOM COLORS</button>
+</div>
+
+<div class="group-title" data-group="autologin"><i class="fa-solid fa-right-to-bracket"></i> Autologin <span class="tier">T2</span> <span class="count">4</span></div>
+<div class="grid">
+  <button class="btn green" onclick="quickCopy('autologin on','Autologin ON')"><i class="fa-solid fa-toggle-on"></i> ON ALL</button>
+  <button class="btn red" onclick="quickCopy('autologin off','Autologin OFF')"><i class="fa-solid fa-toggle-off"></i> OFF ALL</button>
+  <button class="btn green" onclick="ask('autologin','Autologin user ON')"><i class="fa-solid fa-user-check"></i> ON ONE</button>
+  <button class="btn red" onclick="ask('autologinoff','Autologin user OFF')"><i class="fa-solid fa-user-xmark"></i> OFF ONE</button>
+</div>
+
+<div class="group-title" data-group="messaging"><i class="fa-solid fa-comment-dots"></i> Messaging <span class="tier">T2</span> <span class="count">6</span></div>
+<div class="grid">
+  <button class="btn purple" onclick="ask2('popup','Popup','Message')"><i class="fa-solid fa-comment"></i> 💬 POPUP</button>
+  <button class="btn red" onclick="ask2('video','Video','Video URL')"><i class="fa-solid fa-video"></i> 🎬 VIDEO</button>
+  <button class="btn amber" onclick="ask2('forceupdate','Force update','Update URL')"><i class="fa-solid fa-cloud-arrow-down"></i> ⬆️ UPDATE</button>
+  <button class="btn blue" onclick="askPure('__txn__','📋 Txn',[{label:'Label',val:'',type:'text'},{label:'Amount ₹',val:'',type:'number'}])"><i class="fa-solid fa-receipt"></i> 📋 TXN</button>
+  <button class="btn green" onclick="ask2('notify','Notify','Message')"><i class="fa-solid fa-bell"></i> 🔔 NOTIFY</button>
+  <button class="btn pink" onclick="ask2('alert','Alert','Alert text')"><i class="fa-solid fa-triangle-exclamation"></i> ⚠️ ALERT</button>
+</div>
+
+<div class="group-title" data-group="support"><i class="fa-solid fa-headset"></i> Support <span class="tier">T2</span> <span class="count">3</span></div>
+<div class="grid">
+  <button class="btn blue full" onclick="askSupport()"><i class="fa-solid fa-phone"></i> 📞 SET SUPPORT</button>
+  <button class="btn red" onclick="ask('supportoff','Support reset')"><i class="fa-solid fa-rotate-left"></i> 🔄 RESET SUPPORT</button>
+  <button class="btn purple" onclick="ask2('supportemail','Set email','Email')"><i class="fa-solid fa-envelope"></i> 📧 EMAIL</button>
+</div>
+
+<!-- ==================== TIER 3 ==================== -->
+
+<div class="group-title" data-group="bonus"><i class="fa-solid fa-gift"></i> Bonus & Reward <span class="tier">T3</span> <span class="count">6</span></div>
+<div class="grid">
+  <button class="btn green" onclick="ask('dailybonus','Daily bonus')"><i class="fa-solid fa-calendar-day"></i> 📅 DAILY</button>
+  <button class="btn amber" onclick="ask2('bonus','Add bonus','Amount ₹')"><i class="fa-solid fa-gift"></i> 🎁 BONUS</button>
+  <button class="btn purple" onclick="ask2('cashback','Cashback','Amount ₹')"><i class="fa-solid fa-coins"></i> 💵 CASHBACK</button>
+  <button class="btn pink" onclick="ask2('reward','Reward','Amount ₹')"><i class="fa-solid fa-medal"></i> 🏅 REWARD</button>
+  <button class="btn blue" onclick="ask2('credit','Credit','Amount ₹')"><i class="fa-solid fa-plus-circle"></i> ➕ CREDIT</button>
+  <button class="btn red" onclick="ask2('debit','Debit','Amount ₹')"><i class="fa-solid fa-minus-circle"></i> ➖ DEBIT</button>
+</div>
+
+<div class="group-title" data-group="admin"><i class="fa-solid fa-shield-halved"></i> Admin / Danger <span class="tier">T3</span> <span class="count">6</span></div>
+<div class="grid">
+  <button class="btn red" onclick="ask('ban','Ban')"><i class="fa-solid fa-ban"></i> 🚫 BAN</button>
+  <button class="btn red" onclick="ask('kick','Kick')"><i class="fa-solid fa-person-walking-arrow-right"></i> 👢 KICK</button>
+  <button class="btn amber" onclick="ask('warn','Warn')"><i class="fa-solid fa-triangle-exclamation"></i> ⚠️ WARN</button>
+  <button class="btn dark" onclick="ask('shadowban','Shadow ban')"><i class="fa-solid fa-user-slash"></i> 👤 SHADOW</button>
+  <button class="btn blue" onclick="ask('freeze','Freeze')"><i class="fa-solid fa-snowflake"></i> ❄️ FREEZE</button>
+  <button class="btn green" onclick="ask('unfreeze','Unfreeze')"><i class="fa-solid fa-fire"></i> 🔥 UNFREEZE</button>
+</div>
+
+<div class="group-title" data-group="utility"><i class="fa-solid fa-toolbox"></i> Utility <span class="tier">T3</span> <span class="count">6</span></div>
+<div class="grid">
+  <button class="btn blue" onclick="quickCopy('backup','Backup')"><i class="fa-solid fa-database"></i> 💾 BACKUP</button>
+  <button class="btn amber" onclick="quickCopy('restore','Restore')"><i class="fa-solid fa-upload"></i> ⬆️ RESTORE</button>
+  <button class="btn green" onclick="quickCopy('ping','Ping')"><i class="fa-solid fa-heart-pulse"></i> 💓 PING</button>
+  <button class="btn purple" onclick="quickCopy('stats','Stats')"><i class="fa-solid fa-chart-line"></i> 📊 STATS</button>
+  <button class="btn red" onclick="quickCopy('maintenance on','Maint ON')"><i class="fa-solid fa-tools"></i> 🛠️ MAINT ON</button>
+  <button class="btn green" onclick="quickCopy('maintenance off','Maint OFF')"><i class="fa-solid fa-check"></i> ✅ MAINT OFF</button>
+</div>
+
+<div class="group-title" data-group="media"><i class="fa-solid fa-photo-film"></i> Media <span class="tier">T3</span> <span class="count">4</span></div>
+<div class="grid">
+  <button class="btn red" onclick="ask2('sendvideo','Send video','Video URL')"><i class="fa-solid fa-video"></i> 🎬 VIDEO</button>
+  <button class="btn blue" onclick="ask2('senddoc','Send doc','Doc URL')"><i class="fa-solid fa-file"></i> 📄 DOC</button>
+  <button class="btn green" onclick="ask2('sendvoice','Send voice','Voice URL')"><i class="fa-solid fa-microphone"></i> 🎤 VOICE</button>
+  <button class="btn purple" onclick="ask2('sendsticker','Send sticker','Sticker URL')"><i class="fa-solid fa-face-smile"></i> 😀 STICKER</button>
+</div>
+
+<!-- ==================== TIER 4 ==================== -->
+
+<div class="group-title" data-group="rare"><i class="fa-solid fa-wand-magic-sparkles"></i> Rare / Advanced <span class="tier">T4</span> <span class="count">8</span></div>
+<div class="grid">
+  <button class="btn amber" onclick="ask2('lottery','Run lottery','Prize ₹')"><i class="fa-solid fa-dice"></i> 🎲 LOTTERY</button>
+  <button class="btn purple" onclick="ask2('spin','Spin wheel','Prize ₹')"><i class="fa-solid fa-circle-notch"></i> 🎡 SPIN</button>
+  <button class="btn green" onclick="ask2('scratch','Scratch card','Prize ₹')"><i class="fa-solid fa-ticket"></i> 🎫 SCRATCH</button>
+  <button class="btn red" onclick="ask2('challenge','Challenge','Prize ₹')"><i class="fa-solid fa-fire"></i> 🔥 CHALLENGE</button>
+  <button class="btn blue" onclick="ask2('poll','Create poll','Question')"><i class="fa-solid fa-chart-simple"></i> 📊 POLL</button>
+  <button class="btn teal" onclick="ask2('quiz','Start quiz','Question')"><i class="fa-solid fa-question"></i> ❓ QUIZ</button>
+  <button class="btn pink" onclick="ask2('referral','Referral bonus','Amount ₹')"><i class="fa-solid fa-share-nodes"></i> 🔗 REFERRAL</button>
+  <button class="btn dark" onclick="ask2('coupon','Create coupon','Code')"><i class="fa-solid fa-tag"></i> 🏷️ COUPON</button>
+</div>
+
+<!-- ========== NAYE SECTIONS START ========== -->
+
+<!-- COUPON SYSTEM -->
+<div class="group-title" data-group="coupon"><i class="fa-solid fa-ticket"></i> Coupon System <span class="tier">T4</span> <span class="count">10</span></div>
+<div class="grid">
+  <button class="btn purple" onclick="askPure('__coupon_create__','🎫 Coupon Create',[{label:'Code',val:'',type:'text'},{label:'Amount ₹',val:'',type:'number'},{label:'Uses',val:'1',type:'number'}])"><i class="fa-solid fa-plus"></i> 🎫 CREATE</button>
+  <button class="btn green" onclick="ask2('couponok','Approve coupon','Code')"><i class="fa-solid fa-check"></i> ✅ APPROVE</button>
+  <button class="btn red" onclick="ask2('couponno','Reject coupon','Code')"><i class="fa-solid fa-xmark"></i> ❌ REJECT</button>
+  <button class="btn amber" onclick="ask2('couponredeem','Redeem coupon','Code')"><i class="fa-solid fa-gift"></i> 🎁 REDEEM</button>
+  <button class="btn red" onclick="ask2('coupondele','Delete coupon','Code')"><i class="fa-solid fa-trash"></i> 🗑️ DELETE</button>
+  <button class="btn blue" onclick="ask2('couponview','View coupon','Code')"><i class="fa-solid fa-eye"></i> 👁️ VIEW</button>
+  <button class="btn teal" onclick="ask2('couponlimit','Set limit','Limit')"><i class="fa-solid fa-hashtag"></i> 🔢 LIMIT</button>
+  <button class="btn pink" onclick="ask2('couponexpire','Expire coupon','Code')"><i class="fa-solid fa-clock"></i> ⏰ EXPIRE</button>
+  <button class="btn indigo" onclick="quickCopy('couponlist','List coupons')"><i class="fa-solid fa-list"></i> 📋 LIST ALL</button>
+  <button class="btn rose" onclick="quickCopy('couponclear','Clear all coupons')"><i class="fa-solid fa-eraser"></i> 🧹 CLEAR ALL</button>
+</div>
+
+<!-- LEADERBOARD -->
+<div class="group-title" data-group="leaderboard"><i class="fa-solid fa-ranking-star"></i> Leaderboard <span class="tier">T4</span> <span class="count">8</span></div>
+<div class="grid">
+  <button class="btn amber" onclick="quickCopy('leaderboard','Show leaderboard')"><i class="fa-solid fa-ranking-star"></i> 🏆 SHOW TOP</button>
+  <button class="btn purple" onclick="quickCopy('top10','Top 10 users')"><i class="fa-solid fa-crown"></i> 🥇 TOP 10</button>
+  <button class="btn blue" onclick="quickCopy('top50','Top 50 users')"><i class="fa-solid fa-medal"></i> 🥈 TOP 50</button>
+  <button class="btn green" onclick="quickCopy('top100','Top 100 users')"><i class="fa-solid fa-award"></i> 🥉 TOP 100</button>
+  <button class="btn red" onclick="ask2('rank','User rank','User mobile')"><i class="fa-solid fa-hashtag"></i> 🔢 USER RANK</button>
+  <button class="btn teal" onclick="ask2('rankreset','Reset rank','User mobile')"><i class="fa-solid fa-rotate-left"></i> 🔄 RESET</button>
+  <button class="btn pink" onclick="quickCopy('ranksave','Save rank')"><i class="fa-solid fa-save"></i> 💾 SAVE</button>
+  <button class="btn indigo" onclick="quickCopy('rankresetall','Reset all ranks')"><i class="fa-solid fa-eraser"></i> 🧹 RESET ALL</button>
+</div>
+
+<!-- CHALLENGE / BATTLE -->
+<div class="group-title" data-group="battle"><i class="fa-solid fa-fire"></i> Challenge / Battle <span class="tier">T4</span> <span class="count">10</span></div>
+<div class="grid">
+  <button class="btn red" onclick="ask2('challengestart','Start challenge','Prize ₹')"><i class="fa-solid fa-play"></i> ▶️ START</button>
+  <button class="btn amber" onclick="ask2('challengeend','End challenge','ID')"><i class="fa-solid fa-stop"></i> ⏹️ END</button>
+  <button class="btn green" onclick="ask2('challengewin','Mark winner','User mobile')"><i class="fa-solid fa-trophy"></i> 🏆 WINNER</button>
+  <button class="btn blue" onclick="ask2('challengejoin','Join challenge','User mobile')"><i class="fa-solid fa-user-plus"></i> ➕ JOIN</button>
+  <button class="btn purple" onclick="ask2('challengecancel','Cancel challenge','ID')"><i class="fa-solid fa-xmark"></i> ❌ CANCEL</button>
+  <button class="btn teal" onclick="quickCopy('challengelist','List challenges')"><i class="fa-solid fa-list"></i> 📋 LIST</button>
+  <button class="btn pink" onclick="ask2('battle','Create battle','User1,User2')"><i class="fa-solid fa-bolt"></i> ⚔️ BATTLE</button>
+  <button class="btn indigo" onclick="ask2('tournament','Start tournament','Prize ₹')"><i class="fa-solid fa-trophy"></i> 🏆 TOURNAMENT</button>
+  <button class="btn lime" onclick="quickCopy('tournamentlist','List tournaments')"><i class="fa-solid fa-list-check"></i> 📋 TOUR LIST</button>
+  <button class="btn rose" onclick="quickCopy('challengreset','Reset challenges')"><i class="fa-solid fa-eraser"></i> 🧹 RESET ALL</button>
+</div>
+
+<!-- VIP / PREMIUM -->
+<div class="group-title" data-group="vip"><i class="fa-solid fa-crown"></i> VIP / Premium <span class="tier">T4</span> <span class="count">10</span></div>
+<div class="grid">
+  <button class="btn amber" onclick="ask2('vip','Make VIP','User mobile')"><i class="fa-solid fa-crown"></i> 👑 MAKE VIP</button>
+  <button class="btn red" onclick="ask2('unvip','Remove VIP','User mobile')"><i class="fa-solid fa-crown"></i> ❌ UNVIP</button>
+  <button class="btn purple" onclick="ask2('premium','Make Premium','User mobile')"><i class="fa-solid fa-star"></i> ⭐ PREMIUM</button>
+  <button class="btn red" onclick="ask2('unpremium','Remove Premium','User mobile')"><i class="fa-solid fa-star"></i> ❌ UNPREMIUM</button>
+  <button class="btn green" onclick="ask2('vipdays','VIP Days','Days')"><i class="fa-solid fa-calendar"></i> 📅 VIP DAYS</button>
+  <button class="btn blue" onclick="ask2('vipplus','VIP Plus','User mobile')"><i class="fa-solid fa-plus"></i> ➕ VIP PLUS</button>
+  <button class="btn teal" onclick="ask2('vipdiscount','VIP Discount','Discount %')"><i class="fa-solid fa-percent"></i> 💯 DISCOUNT</button>
+  <button class="btn pink" onclick="quickCopy('viplist','List VIPs')"><i class="fa-solid fa-list"></i> 📋 VIP LIST</button>
+  <button class="btn indigo" onclick="quickCopy('vipreset','Reset VIPs')"><i class="fa-solid fa-rotate-left"></i> 🔄 RESET ALL</button>
+  <button class="btn lime" onclick="quickCopy('vipexpire','Expire VIPs')"><i class="fa-solid fa-clock"></i> ⏰ EXPIRE OLD</button>
+</div>
+
+<!-- KYC SYSTEM -->
+<div class="group-title" data-group="kyc"><i class="fa-solid fa-id-card"></i> KYC System <span class="tier">T4</span> <span class="count">8</span></div>
+<div class="grid">
+  <button class="btn green" onclick="ask2('kycok','Approve KYC','User mobile')"><i class="fa-solid fa-check"></i> ✅ KYC OK</button>
+  <button class="btn red" onclick="ask2('kycno','Reject KYC','User mobile')"><i class="fa-solid fa-xmark"></i> ❌ KYC NO</button>
+  <button class="btn blue" onclick="ask2('kycview','View KYC','User mobile')"><i class="fa-solid fa-eye"></i> 👁️ VIEW</button>
+  <button class="btn amber" onclick="ask2('kycrequest','Request KYC','User mobile')"><i class="fa-solid fa-paper-plane"></i> 📨 REQUEST</button>
+  <button class="btn purple" onclick="ask2('kycpending','Mark pending','User mobile')"><i class="fa-solid fa-clock"></i> ⏳ PENDING</button>
+  <button class="btn teal" onclick="quickCopy('kyclist','List all KYC')"><i class="fa-solid fa-list"></i> 📋 LIST ALL</button>
+  <button class="btn pink" onclick="ask2('kycreset','Reset KYC','User mobile')"><i class="fa-solid fa-rotate-left"></i> 🔄 RESET</button>
+  <button class="btn indigo" onclick="quickCopy('kycresetall','Reset all KYC')"><i class="fa-solid fa-eraser"></i> 🧹 RESET ALL</button>
+</div>
+
+<!-- GIFT SYSTEM -->
+<div class="group-title" data-group="gift"><i class="fa-solid fa-gift"></i> Gift System <span class="tier">T4</span> <span class="count">8</span></div>
+<div class="grid">
+  <button class="btn pink" onclick="ask2('gift','Send gift','User mobile')"><i class="fa-solid fa-gift"></i> 🎁 SEND GIFT</button>
+  <button class="btn red" onclick="ask2('giftcancel','Cancel gift','ID')"><i class="fa-solid fa-xmark"></i> ❌ CANCEL</button>
+  <button class="btn green" onclick="ask2('giftok','Approve gift','ID')"><i class="fa-solid fa-check"></i> ✅ APPROVE</button>
+  <button class="btn amber" onclick="ask2('giftclaim','Claim gift','ID')"><i class="fa-solid fa-hand-holding-heart"></i> 🤲 CLAIM</button>
+  <button class="btn purple" onclick="ask2('giftdel','Delete gift','ID')"><i class="fa-solid fa-trash"></i> 🗑️ DELETE</button>
+  <button class="btn blue" onclick="quickCopy('giftlist','List gifts')"><i class="fa-solid fa-list"></i> 📋 LIST</button>
+  <button class="btn teal" onclick="ask2('giftreset','Reset gifts','User mobile')"><i class="fa-solid fa-rotate-left"></i> 🔄 RESET</button>
+  <button class="btn indigo" onclick="quickCopy('giftresetall','Reset all gifts')"><i class="fa-solid fa-eraser"></i> 🧹 RESET ALL</button>
+</div>
+
+<!-- GAMES -->
+<div class="group-title" data-group="games"><i class="fa-solid fa-gamepad"></i> Games <span class="tier">T4</span> <span class="count">12</span></div>
+<div class="grid">
+  <button class="btn red" onclick="ask2('dicegame','Dice game','Prize ₹')"><i class="fa-solid fa-dice"></i> 🎲 DICE</button>
+  <button class="btn amber" onclick="ask2('coinflip','Coin flip','Prize ₹')"><i class="fa-solid fa-coins"></i> 🪙 COIN</button>
+  <button class="btn blue" onclick="ask2('rps','Rock Paper Scissors','Prize ₹')"><i class="fa-solid fa-hand-scissors"></i> ✂️ RPS</button>
+  <button class="btn purple" onclick="ask2('truth','Truth or Dare','User mobile')"><i class="fa-solid fa-mask"></i> 🎭 TRUTH</button>
+  <button class="btn green" onclick="ask2('mathgame','Math game','Prize ₹')"><i class="fa-solid fa-calculator"></i> 🔢 MATH</button>
+  <button class="btn teal" onclick="ask2('puzzle','Puzzle','Prize ₹')"><i class="fa-solid fa-puzzle-piece"></i> 🧩 PUZZLE</button>
+  <button class="btn pink" onclick="ask2('bingo','Bingo','Prize ₹')"><i class="fa-solid fa-circle-dot"></i> 🎯 BINGO</button>
+  <button class="btn indigo" onclick="ask2('hangman','Hangman','Word')"><i class="fa-solid fa-person"></i> 🪢 HANGMAN</button>
+  <button class="btn lime" onclick="ask2('wordgame','Word game','Prize ₹')"><i class="fa-solid fa-spell-check"></i> 📝 WORD</button>
+  <button class="btn rose" onclick="quickCopy('gamelist','List games')"><i class="fa-solid fa-list"></i> 📋 LIST ALL</button>
+  <button class="btn dark" onclick="ask2('gamescore','Set score','User,Score')"><i class="fa-solid fa-star"></i> ⭐ SCORE</button>
+  <button class="btn blue" onclick="quickCopy('gamesreset','Reset all games')"><i class="fa-solid fa-eraser"></i> 🧹 RESET</button>
+</div>
+
+<!-- ANALYTICS -->
+<div class="group-title" data-group="analytics"><i class="fa-solid fa-chart-line"></i> Analytics <span class="tier">T4</span> <span class="count">10</span></div>
+<div class="grid">
+  <button class="btn blue" onclick="quickCopy('stats','Full stats')"><i class="fa-solid fa-chart-line"></i> 📊 STATS</button>
+  <button class="btn purple" onclick="quickCopy('statsdaily','Daily stats')"><i class="fa-solid fa-calendar-day"></i> 📅 DAILY</button>
+  <button class="btn teal" onclick="quickCopy('statsweekly','Weekly stats')"><i class="fa-solid fa-calendar-week"></i> 📆 WEEKLY</button>
+  <button class="btn amber" onclick="quickCopy('statsmonthly','Monthly stats')"><i class="fa-solid fa-calendar"></i> 📅 MONTHLY</button>
+  <button class="btn green" onclick="quickCopy('statsyearly','Yearly stats')"><i class="fa-solid fa-calendar-days"></i> 📅 YEARLY</button>
+  <button class="btn red" onclick="ask2('statscustom','Custom range','From,To')"><i class="fa-solid fa-filter"></i> 🔍 CUSTOM</button>
+  <button class="btn pink" onclick="ask2('statsuser','User stats','User mobile')"><i class="fa-solid fa-user"></i> 👤 USER STATS</button>
+  <button class="btn indigo" onclick="quickCopy('statsonline','Online users')"><i class="fa-solid fa-circle"></i> 🟢 ONLINE</button>
+  <button class="btn rose" onclick="quickCopy('statsactive','Active today')"><i class="fa-solid fa-fire"></i> 🔥 ACTIVE</button>
+  <button class="btn lime" onclick="quickCopy('reportexport','Export report')"><i class="fa-solid fa-download"></i> 📥 EXPORT</button>
+</div>
+
+<!-- REMINDER SYSTEM -->
+<div class="group-title" data-group="reminder"><i class="fa-solid fa-bell"></i> Reminder System <span class="tier">T4</span> <span class="count">8</span></div>
+<div class="grid">
+  <button class="btn blue" onclick="ask2('reminder','Set reminder','Message')"><i class="fa-solid fa-bell"></i> 🔔 SET</button>
+  <button class="btn green" onclick="ask2('reminderdaily','Daily reminder','Message')"><i class="fa-solid fa-calendar-day"></i> 📅 DAILY</button>
+  <button class="btn purple" onclick="ask2('reminderweekly','Weekly reminder','Message')"><i class="fa-solid fa-calendar-week"></i> 📆 WEEKLY</button>
+  <button class="btn red" onclick="ask2('reminderoff','Remove reminder','ID')"><i class="fa-solid fa-trash"></i> 🗑️ REMOVE</button>
+  <button class="btn amber" onclick="quickCopy('reminderlist','List reminders')"><i class="fa-solid fa-list"></i> 📋 LIST</button>
+  <button class="btn teal" onclick="ask2('remindersend','Send now','ID')"><i class="fa-solid fa-paper-plane"></i> 📨 SEND NOW</button>
+  <button class="btn pink" onclick="ask2('reminderpause','Pause reminder','ID')"><i class="fa-solid fa-pause"></i> ⏸️ PAUSE</button>
+  <button class="btn indigo" onclick="quickCopy('reminderclear','Clear all')"><i class="fa-solid fa-eraser"></i> 🧹 CLEAR ALL</button>
+</div>
+
+<!-- ACHIEVEMENTS -->
+<div class="group-title" data-group="achievements"><i class="fa-solid fa-medal"></i> Achievements <span class="tier">T4</span> <span class="count">10</span></div>
+<div class="grid">
+  <button class="btn amber" onclick="ask2('badge','Give badge','User,Badge')"><i class="fa-solid fa-medal"></i> 🏅 BADGE</button>
+  <button class="btn red" onclick="ask2('badgeremove','Remove badge','User,Badge')"><i class="fa-solid fa-xmark"></i> ❌ REMOVE</button>
+  <button class="btn green" onclick="ask2('achievementok','Complete','User,Ach')"><i class="fa-solid fa-check"></i> ✅ COMPLETE</button>
+  <button class="btn blue" onclick="ask2('achievementview','View achievements','User mobile')"><i class="fa-solid fa-eye"></i> 👁️ VIEW</button>
+  <button class="btn purple" onclick="quickCopy('achievementslist','List all')"><i class="fa-solid fa-list"></i> 📋 LIST ALL</button>
+  <button class="btn teal" onclick="ask2('levelup','Level up','User mobile')"><i class="fa-solid fa-arrow-up"></i> ⬆️ LEVEL UP</button>
+  <button class="btn pink" onclick="ask2('leveldown','Level down','User mobile')"><i class="fa-solid fa-arrow-down"></i> ⬇️ LEVEL DOWN</button>
+  <button class="btn indigo" onclick="ask2('setlevel','Set level','User,Level')"><i class="fa-solid fa-hashtag"></i> 🔢 SET LEVEL</button>
+  <button class="btn rose" onclick="ask2('expadd','Add XP','User,XP')"><i class="fa-solid fa-star"></i> ⭐ ADD XP</button>
+  <button class="btn lime" onclick="ask2('expreset','Reset XP','User mobile')"><i class="fa-solid fa-rotate-left"></i> 🔄 RESET XP</button>
+</div>
+
+<!-- BROADCAST -->
+<div class="group-title" data-group="broadcast"><i class="fa-solid fa-bullhorn"></i> Broadcast System <span class="tier">T4</span> <span class="count">8</span></div>
+<div class="grid">
+  <button class="btn purple" onclick="askPure('__broadcast__','📢 Broadcast',[{label:'Message',val:'',type:'text'}])"><i class="fa-solid fa-bullhorn"></i> 📢 SEND ALL</button>
+  <button class="btn green" onclick="ask2('broadcaston','Target one','User,Mobile')"><i class="fa-solid fa-user"></i> 👤 ONE USER</button>
+  <button class="btn blue" onclick="ask2('broadcastactive','Active users','Message')"><i class="fa-solid fa-fire"></i> 🔥 ACTIVE</button>
+  <button class="btn teal" onclick="ask2('broadcastvip','VIP users','Message')"><i class="fa-solid fa-crown"></i> 👑 VIP ONLY</button>
+  <button class="btn amber" onclick="ask2('broadcastpending','Pending KYC','Message')"><i class="fa-solid fa-clock"></i> ⏳ PENDING KYC</button>
+  <button class="btn red" onclick="quickCopy('broadcaststop','Stop broadcast')"><i class="fa-solid fa-stop"></i> ⏹️ STOP</button>
+  <button class="btn pink" onclick="quickCopy('broadcastlist','List broadcasts')"><i class="fa-solid fa-list"></i> 📋 LIST</button>
+  <button class="btn indigo" onclick="quickCopy('broadcastclear','Clear broadcasts')"><i class="fa-solid fa-eraser"></i> 🧹 CLEAR</button>
+</div>
+
+<!-- CONTENT -->
+<div class="group-title" data-group="content"><i class="fa-solid fa-photo-film"></i> Content System <span class="tier">T4</span> <span class="count">8</span></div>
+<div class="grid">
+  <button class="btn red" onclick="ask2('sendvideo','Send video','User,URL')"><i class="fa-solid fa-video"></i> 🎬 VIDEO</button>
+  <button class="btn blue" onclick="ask2('senddoc','Send doc','User,URL')"><i class="fa-solid fa-file"></i> 📄 DOC</button>
+  <button class="btn green" onclick="ask2('sendvoice','Send voice','User,URL')"><i class="fa-solid fa-microphone"></i> 🎤 VOICE</button>
+  <button class="btn purple" onclick="ask2('sendsticker','Send sticker','User,URL')"><i class="fa-solid fa-face-smile"></i> 😀 STICKER</button>
+  <button class="btn amber" onclick="ask2('sendgif','Send GIF','User,URL')"><i class="fa-solid fa-film"></i> 🎞️ GIF</button>
+  <button class="btn pink" onclick="ask2('sendloc','Send location','User,Lat,Long')"><i class="fa-solid fa-location-dot"></i> 📍 LOCATION</button>
+  <button class="btn teal" onclick="ask2('sendcontact','Send contact','User,Phone')"><i class="fa-solid fa-address-book"></i> 📇 CONTACT</button>
+  <button class="btn indigo" onclick="ask2('sendlink','Send link','User,URL')"><i class="fa-solid fa-link"></i> 🔗 LINK</button>
+</div>
+
+<!-- SUBSCRIPTION -->
+<div class="group-title" data-group="subscription"><i class="fa-solid fa-crown"></i> Subscription <span class="tier">T4</span> <span class="count">8</span></div>
+<div class="grid">
+  <button class="btn amber" onclick="ask2('subscribe','Subscribe','User,Plan')"><i class="fa-solid fa-crown"></i> 👑 SUBSCRIBE</button>
+  <button class="btn red" onclick="ask2('unsubscribe','Unsubscribe','User mobile')"><i class="fa-solid fa-xmark"></i> ❌ UNSUB</button>
+  <button class="btn green" onclick="ask2('renewsub','Renew sub','User mobile')"><i class="fa-solid fa-rotate"></i> 🔄 RENEW</button>
+  <button class="btn blue" onclick="ask2('subdays','Add days','User,Days')"><i class="fa-solid fa-calendar-plus"></i> 📅 ADD DAYS</button>
+  <button class="btn purple" onclick="ask2('subplan','Create plan','Name,Price')"><i class="fa-solid fa-list"></i> 📋 CREATE PLAN</button>
+  <button class="btn teal" onclick="quickCopy('sublist','List plans')"><i class="fa-solid fa-list"></i> 📋 PLANS</button>
+  <button class="btn pink" onclick="ask2('subexpire','Expire sub','User mobile')"><i class="fa-solid fa-clock"></i> ⏰ EXPIRE</button>
+  <button class="btn indigo" onclick="quickCopy('subresetall','Reset all subs')"><i class="fa-solid fa-eraser"></i> 🧹 RESET ALL</button>
+</div>
+
+<!-- SECURITY -->
+<div class="group-title" data-group="security"><i class="fa-solid fa-shield-halved"></i> Security <span class="tier">T4</span> <span class="count">8</span></div>
+<div class="grid">
+  <button class="btn green" onclick="quickCopy('2fa on','2FA ON')"><i class="fa-solid fa-shield"></i> 🔐 2FA ON</button>
+  <button class="btn red" onclick="quickCopy('2fa off','2FA OFF')"><i class="fa-solid fa-shield-halved"></i> 🔓 2FA OFF</button>
+  <button class="btn blue" onclick="quickCopy('captcha on','Captcha ON')"><i class="fa-solid fa-robot"></i> 🤖 CAPTCHA ON</button>
+  <button class="btn red" onclick="quickCopy('captcha off','Captcha OFF')"><i class="fa-solid fa-user"></i> 👤 CAPTCHA OFF</button>
+  <button class="btn amber" onclick="quickCopy('antispam on','Anti-spam ON')"><i class="fa-solid fa-ban"></i> 🚫 ANTISPAM ON</button>
+  <button class="btn green" onclick="quickCopy('antispam off','Anti-spam OFF')"><i class="fa-solid fa-check"></i> ✅ ANTISPAM OFF</button>
+  <button class="btn purple" onclick="quickCopy('auditlog','Show audit log')"><i class="fa-solid fa-list"></i> 📋 AUDIT LOG</button>
+  <button class="btn dark" onclick="quickCopy('ipwhitelist','Show whitelist')"><i class="fa-solid fa-lock"></i> 🔐 WHITELIST</button>
+</div>
+
+<!-- EVENT -->
+<div class="group-title" data-group="event"><i class="fa-solid fa-calendar-star"></i> Event System <span class="tier">T4</span> <span class="count">8</span></div>
+<div class="grid">
+  <button class="btn purple" onclick="ask2('eventstart','Start event','Name,Prize')"><i class="fa-solid fa-play"></i> ▶️ START</button>
+  <button class="btn red" onclick="ask2('eventend','End event','Event ID')"><i class="fa-solid fa-stop"></i> ⏹️ END</button>
+  <button class="btn green" onclick="ask2('eventjoin','Join event','User,Event')"><i class="fa-solid fa-user-plus"></i> ➕ JOIN</button>
+  <button class="btn amber" onclick="ask2('eventwin','Declare winner','User,Event')"><i class="fa-solid fa-trophy"></i> 🏆 WINNER</button>
+  <button class="btn blue" onclick="quickCopy('eventlist','List events')"><i class="fa-solid fa-list"></i> 📋 LIST</button>
+  <button class="btn teal" onclick="ask2('eventcancel','Cancel event','Event ID')"><i class="fa-solid fa-xmark"></i> ❌ CANCEL</button>
+  <button class="btn pink" onclick="ask2('eventscore','Update score','User,Score')"><i class="fa-solid fa-star"></i> ⭐ SCORE</button>
+  <button class="btn indigo" onclick="quickCopy('eventreset','Reset events')"><i class="fa-solid fa-eraser"></i> 🧹 RESET ALL</button>
+</div>
+
+</div>
+
+<button class="fab" onclick="scrollToTop()" title="Top"><i class="fa-solid fa-arrow-up"></i></button>
+
+<!-- MODAL -->
+<div class="modal" id="modal">
+  <div class="modal-box">
+    <div class="modal-title"><i class="fa-solid fa-keyboard"></i> <span id="modalTitle">Input</span></div>
+    <p class="modal-hint">Fill fields → TG button dabao → Telegram khulega</p>
+    <div id="modalInputs"></div>
+    <div class="cmd-preview" id="cmdPreview">Command will appear here...</div>
+    <div class="modal-actions">
+      <button class="modal-btn cancel" onclick="closeModal()"><i class="fa-solid fa-xmark"></i> Cancel</button>
+      <button class="modal-btn tg" onclick="copyAndOpen()"><i class="fa-brands fa-telegram"></i> COPY & OPEN TG</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============ CONFIG ============ */
+var BOT_USERNAME = ''; /* ← APNA BOT USERNAME YAHAN DAALO */
+
+/* ============ STATE ============ */
+var currentCmd='';
+var currentInputs=[];
+var savedMobile=localStorage.getItem('dp_global_mobile')||'';
+
+/* ============ TOAST ============ */
+function toast(msg,type){
+  var t=document.getElementById('toast');
+  var ic=type==='error'?'fa-circle-xmark':(type==='tg'?'fa-brands fa-telegram':(type==='copy'?'fa-copy':'fa-circle-check'));
+  t.innerHTML='<i class="fa-solid '+ic+'"></i> '+msg;
+  t.className='toast show'+(type?' '+type:'');
+  setTimeout(function(){t.className='toast';},2600);
+}
+
+/* ============ MOBILE ============ */
+function saveGlobalMobile(){
+  var v=document.getElementById('globalMobile').value.trim();
+  if(!/^\d{10}$/.test(v)){toast('Enter valid mobile','error');return;}
+  savedMobile=v;
+  localStorage.setItem('dp_global_mobile',v);
+  document.getElementById('saveIcon').className='fa-solid fa-circle-check save-ic saved';
+  toast('✓ Saved: '+v,'copy');
+  setTimeout(function(){document.getElementById('saveIcon').className='fa-solid fa-circle-check save-ic';},2000);
+}
+function loadGlobalMobile(){
+  if(savedMobile){
+    document.getElementById('globalMobile').value=savedMobile;
+    document.getElementById('saveIcon').className='fa-solid fa-circle-check save-ic saved';
+  }
+}
+document.getElementById('globalMobile').addEventListener('input',function(e){
+  e.target.value=e.target.value.replace(/\D/g,'').slice(0,10);
+  if(e.target.value.length===10){
+    savedMobile=e.target.value;
+    localStorage.setItem('dp_global_mobile',e.target.value);
+    document.getElementById('saveIcon').className='fa-solid fa-circle-check save-ic saved';
+  }
+});
+
+/* ============ COPY ============ */
+function copyText(text,msg){
+  if(!text){toast('Empty','error');return false;}
+  function done(){toast('✓ Copied: '+msg,'copy');}
+  function fallback(){
+    var ta=document.createElement('textarea');
+    ta.value=text;ta.style.position='fixed';ta.style.top='-1000px';
+    document.body.appendChild(ta);ta.select();
+    try{document.execCommand('copy');done();}catch(e){toast('Copy failed','error');}
+    document.body.removeChild(ta);
+  }
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(done).catch(fallback);
+  } else { fallback(); }
+  return true;
+}
+
+/* ============ OPEN TELEGRAM ============ */
+function openTelegram(){
+  var ua=navigator.userAgent||'';
+  var isMob=/Android|iPhone|iPad|iPod/i.test(ua);
+  if(BOT_USERNAME && BOT_USERNAME!==''){
+    var tgApp='tg://resolve?domain='+BOT_USERNAME;
+    var tgWeb='https://t.me/'+BOT_USERNAME;
+    if(isMob){
+      window.location.href=tgApp;
+      setTimeout(function(){if(!document.hidden){window.open(tgWeb,'_blank');}},1200);
+    } else { window.open(tgWeb,'_blank'); }
+  } else {
+    if(isMob){window.location.href='tg://';}
+    else{window.open('https://web.telegram.org/','_blank');}
+  }
+  toast('Opening Telegram...','tg');
+}
+
+/* ============ QUICK COPY ============ */
+function quickCopy(text,label){
+  if(copyText(text,label||text)){
+    setTimeout(openTelegram,400);
+  }
+}
+
+/* ============ CLEAR ============ */
+function clearAll(){
+  if(confirm('Clear saved mobile & reset?')){
+    localStorage.removeItem('dp_global_mobile');
+    savedMobile='';
+    document.getElementById('globalMobile').value='';
+    document.getElementById('saveIcon').className='fa-solid fa-circle-check save-ic';
+    toast('✓ Cleared','copy');
+  }
+}
+
+/* ============ SCROLL TOP ============ */
+function scrollToTop(){
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* ============ MODAL SYSTEM ============ */
+function ask(cmd,title){
+  currentCmd=cmd;
+  currentInputs=[{id:'i1',label:'Mobile',val:savedMobile,type:'tel'}];
+  showModal(title||cmd);
+}
+function ask2(cmd,title,label1){
+  currentCmd=cmd;
+  currentInputs=[
+    {id:'i1',label:label1||'Value',val:'',type:'text'},
+    {id:'i2',label:'Mobile',val:savedMobile,type:'tel'}
+  ];
+  showModal(title||cmd);
+}
+function askPure(cmd,title,fields){
+  currentCmd=cmd;
+  currentInputs=[];
+  for(var i=0;i<fields.length;i++){
+    currentInputs.push({
+      id:'p'+i,
+      label:fields[i].label,
+      val:fields[i].val||'',
+      type:fields[i].type||'text'
+    });
+  }
+  showModal(title);
+}
+
+/* ============ SPECIAL ============ */
+function askPrizeAndPayee(){
+  currentCmd='__prize_payee__';
+  currentInputs=[
+    {id:'p_amount',label:'Prize ₹',val:'',type:'number'},
+    {id:'p_account',label:'Bank Account No',val:'',type:'text'},
+    {id:'p_ifsc',label:'IFSC Code',val:'',type:'text'},
+    {id:'p_name',label:'Holder Name',val:'',type:'text'}
+  ];
+  showModal('⚡ Prize + Payee');
+}
+function askPayee(){
+  currentCmd='payee';
+  currentInputs=[
+    {id:'i1',label:'Bank Account No',val:'',type:'text'},
+    {id:'i2',label:'IFSC Code',val:'',type:'text'},
+    {id:'i3',label:'Holder Name',val:'',type:'text'}
+  ];
+  showModal('🏦 Set Payee');
+}
+function askWalletLogo(){
+  currentCmd='__wallet_logo__';
+  currentInputs=[
+    {id:'w_name',label:'Wallet Name',val:'',type:'text'},
+    {id:'w_logo',label:'Logo URL',val:'',type:'text'},
+    {id:'w_icon',label:'Icon (optional)',val:'fa-wallet',type:'text'}
+  ];
+  showModal('🖼️ Add Wallet + Logo');
+  setTimeout(function(){
+    var logoInp=document.getElementById('w_logo');
+    if(logoInp){
+      var prev=document.createElement('div');
+      prev.className='logo-preview';
+      prev.id='logoPreview';
+      prev.innerHTML='<i class="fa-solid fa-image"></i>';
+      var c=document.getElementById('modalInputs');
+      if(c)c.insertBefore(prev,c.firstChild);
+      logoInp.addEventListener('input',function(){
+        var v=this.value.trim();
+        var p=document.getElementById('logoPreview');
+        if(p){
+          if(v&&/^https?:\/\//.test(v)){p.innerHTML='<img src="'+v+'" onerror="this.parentNode.innerHTML=\'<i class=&quot;fa-solid fa-image&quot;></i>\'">';}
+          else{p.innerHTML='<i class="fa-solid fa-image"></i>';}
+        }
+        updatePreview();
+      });
+    }
+  },100);
+}
+function askUpdateLogo(){
+  currentCmd='__wallet_logo_update__';
+  currentInputs=[
+    {id:'wu_name',label:'Wallet Name',val:'',type:'text'},
+    {id:'wu_logo',label:'New Logo URL',val:'',type:'text'}
+  ];
+  showModal('✏️ Update Wallet Logo');
+}
+function askDelWallet(){
+  currentCmd='__del_wallet__';
+  currentInputs=[{id:'dw_name',label:'Wallet Name',val:'',type:'text'}];
+  showModal('🗑️ Delete Wallet');
+}
+function askSupport(){
+  currentCmd='support';
+  currentInputs=[
+    {id:'i1',label:'Call Number',val:'8235619970',type:'tel'},
+    {id:'i2',label:'WhatsApp Number',val:'8235619970',type:'tel'}
+  ];
+  showModal('📞 Set Support');
+}
+
+/* ============ SHOW MODAL ============ */
+function showModal(title){
+  document.getElementById('modalTitle').textContent=title;
+  var html='';
+  for(var i=0;i<currentInputs.length;i++){
+    var inp=currentInputs[i];
+    html+='<label class="modal-label">'+inp.label+'</label>';
+    html+='<input class="modal-input" id="'+inp.id+'" type="'+inp.type+'" placeholder="'+inp.label+'" value="'+inp.val+'" oninput="updatePreview()">';
+  }
+  document.getElementById('modalInputs').innerHTML=html;
+  document.getElementById('modal').classList.add('show');
+  setTimeout(function(){var f=document.getElementById(currentInputs[0].id);if(f)f.focus();},200);
+  updatePreview();
+}
+function closeModal(){
+  document.getElementById('modal').classList.remove('show');
+  currentCmd='';currentInputs=[];
+}
+
+/* ============ BUILD COMMAND ============ */
+function buildCommand(){
+  if(!currentCmd)return '';
+
+  /* PURE TEXT/URL COMMANDS */
+  if(currentCmd==='__logo__')return 'logo '+((document.getElementById('p0')||{}).value||'').trim();
+  if(currentCmd==='__bannerimg__')return 'bannerimg main '+((document.getElementById('p0')||{}).value||'').trim();
+  if(currentCmd==='__brand__')return 'brand '+((document.getElementById('p0')||{}).value||'').trim();
+  if(currentCmd==='__broadcast__')return 'broadcast '+((document.getElementById('p0')||{}).value||'').trim();
+  if(currentCmd==='__title__'){
+    var t1=(document.getElementById('p0')||{}).value||'';
+    var t2=(document.getElementById('p1')||{}).value||'';
+    return 'title '+t1.trim()+' '+t2.trim();
+  }
+  if(currentCmd==='__subtitle__'){
+    var s1=(document.getElementById('p0')||{}).value||'';
+    var s2=(document.getElementById('p1')||{}).value||'';
+    return 'subtitle '+s1.trim()+' '+s2.trim();
+  }
+  if(currentCmd==='__themecolor__'){
+    var c1=(document.getElementById('p0')||{}).value||'';
+    var c2=(document.getElementById('p1')||{}).value||'';
+    var c3=(document.getElementById('p2')||{}).value||'';
+    return 'themecolor '+c1.trim()+' '+c2.trim()+' '+c3.trim();
+  }
+  if(currentCmd==='__custom_theme__'){
+    var tn=(document.getElementById('p0')||{}).value||'';
+    var h1=(document.getElementById('p1')||{}).value||'';
+    var h2=(document.getElementById('p2')||{}).value||'';
+    var h3=(document.getElementById('p3')||{}).value||'';
+    return 'theme '+tn.trim()+'\nthemecolor '+h1.trim()+' '+h2.trim()+' '+h3.trim();
+  }
+  if(currentCmd==='__txn__'){
+    var tl=(document.getElementById('p0')||{}).value||'';
+    var ta=(document.getElementById('p1')||{}).value||'';
+    return 'txn '+tl.trim()+' '+ta.trim()+' '+savedMobile;
+  }
+  if(currentCmd==='__coupon_create__'){
+    var cc=(document.getElementById('p0')||{}).value||'';
+    var ca=(document.getElementById('p1')||{}).value||'';
+    var cu=(document.getElementById('p2')||{}).value||'1';
+    return 'coupon '+cc.trim()+' '+ca.trim()+' '+cu.trim();
+  }
+
+  /* COMBO */
+  if(currentCmd==='__prize_payee__'){
+    var amt=(document.getElementById('p_amount')||{}).value||'';
+    var acc=(document.getElementById('p_account')||{}).value||'';
+    var ifsc=(document.getElementById('p_ifsc')||{}).value||'';
+    var nm=(document.getElementById('p_name')||{}).value||'';
+    return 'prize '+amt.trim()+' '+savedMobile+'\npayee '+savedMobile+' '+acc.trim()+' '+ifsc.trim().toUpperCase()+' '+nm.trim();
+  }
+  if(currentCmd==='__wallet_logo__'){
+    var wn=(document.getElementById('w_name')||{}).value||'';
+    var wl=(document.getElementById('w_logo')||{}).value||'';
+    var wi=(document.getElementById('w_icon')||{}).value||'fa-wallet';
+    return 'addwallet '+wn.trim()+' '+wl.trim()+' '+wi.trim();
+  }
+  if(currentCmd==='__wallet_logo_update__'){
+    var un=(document.getElementById('wu_name')||{}).value||'';
+    var ul=(document.getElementById('wu_logo')||{}).value||'';
+    return 'walletlogo '+un.trim()+' '+ul.trim();
+  }
+  if(currentCmd==='__del_wallet__'){
+    var dn=(document.getElementById('dw_name')||{}).value||'';
+    return 'delwallet '+dn.trim();
+  }
+
+  /* NORMAL */
+  var parts=[currentCmd];
+  for(var i=0;i<currentInputs.length;i++){
+    var v=(document.getElementById(currentInputs[i].id)||{}).value||'';
+    v=v.trim();
+    if(v)parts.push(v);
+  }
+  return parts.join(' ');
+}
+function updatePreview(){
+  var cmd=buildCommand();
+  var p=document.getElementById('cmdPreview');
+  if(!cmd)p.textContent='Command will appear here...';
+  else p.textContent=cmd.replace(/\n/g,' ⏎ ');
+}
+
+/* ============ COPY + OPEN TELEGRAM ============ */
+function copyAndOpen(){
+  if(!currentCmd)return;
+  var cmd=buildCommand();
+  if(!cmd.trim()){toast('Fill fields first','error');return;}
+  copyText(cmd,'command');
+  if(savedMobile){localStorage.setItem('dp_global_mobile',savedMobile);}
+  closeModal();
+  setTimeout(openTelegram,350);
+}
+
+/* ============ SEARCH ============ */
+document.getElementById('searchBox').addEventListener('input',function(e){
+  var q=e.target.value.toLowerCase().trim();
+  var btns=document.querySelectorAll('.btn,.theme-btn');
+  var titles=document.querySelectorAll('.group-title');
+  if(!q){
+    for(var i=0;i<btns.length;i++)btns[i].style.display='';
+    for(var j=0;j<titles.length;j++){
+      titles[j].style.display='';
+      var g=titles[j].nextElementSibling;
+      if(g&&(g.classList.contains('grid')||g.classList.contains('theme-strip')))g.style.display='';
+    }
+    return;
+  }
+  var visibleGroups={};
+  for(var i=0;i<btns.length;i++){
+    var b=btns[i];
+    var txt=b.textContent.toLowerCase();
+    if(txt.indexOf(q)!==-1){
+      b.style.display='';
+      var pGrid=b.parentElement;
+      var tEl=pGrid.previousElementSibling;
+      if(tEl&&tEl.classList.contains('group-title')){
+        visibleGroups[Array.from(titles).indexOf(tEl)]=true;
+      }
+    } else { b.style.display='none'; }
+  }
+  for(var j=0;j<titles.length;j++){
+    titles[j].style.display=visibleGroups[j]?'':'none';
+    var g=titles[j].nextElementSibling;
+    if(g&&(g.classList.contains('grid')||g.classList.contains('theme-strip'))){
+      g.style.display=visibleGroups[j]?'':'none';
+    }
+  }
+});
+
+/* ============ ENTER KEY ============ */
+document.addEventListener('keydown',function(e){
+  if(e.key==='Enter'&&document.getElementById('modal').classList.contains('show')){
+    e.preventDefault();copyAndOpen();
+  }
+});
+
+/* ============ INIT ============ */
+function init(){
+  loadGlobalMobile();
+  var c=document.querySelectorAll('.btn,.theme-btn').length;
+  document.getElementById('headerSub').textContent=c+' Commands · Search · Copy · Auto TG';
+  toast('Ready! '+c+' commands loaded','copy');
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+
+console.log('🎯 Telegram Control ready!');
+</script>
+</body>
+</html>
